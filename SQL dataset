@@ -1,0 +1,65 @@
+use digitalwalletdb;
+
+RENAME TABLE digital_wallet_ltv_dataset TO wallet;
+SHOW TABLES;
+
+
+SELECT * FROM wallet ;
+#Check for duplicate
+SELECT Customer_ID, COUNT(*) 
+FROM wallet 
+GROUP BY Customer_ID 
+HAVING COUNT(*) > 1;
+
+
+#Check for missing values
+SELECT * FROM wallet 
+WHERE Total_Transactions IS NULL 
+   OR Avg_Transaction_Value IS NULL 
+   OR Location IS NULL;
+
+#ustomer Segmentation & Insights
+
+SELECT Customer_ID, Total_Spent, Income_Level, Location
+FROM wallet
+ORDER BY Total_Spent DESC
+LIMIT 5;
+
+SELECT COUNT(*) FROM wallet;
+SELECT * FROM wallet LIMIT 5;
+
+#1 Active Users & Transaction Trends by Location
+SELECT Location, 
+       COUNT(Customer_ID) AS Active_Users, 
+       AVG(Total_Transactions) AS Avg_Transactions, 
+       AVG(Total_Spent) AS Avg_Spending
+FROM wallet
+WHERE Active_Days > 90  -- Adjust threshold as needed
+GROUP BY Location
+ORDER BY Active_Users DESC;
+
+
+
+#2. Customer Segmentation (By Income Level)
+SELECT Income_Level, 
+       AVG(Total_Spent) AS Avg_Spent, 
+       AVG(Total_Transactions) AS Avg_Transactions, 
+       AVG(Active_Days) AS Avg_ActiveDays
+FROM wallet
+GROUP BY Income_Level
+ORDER BY Avg_Spent DESC;
+
+
+#3 Churn Prediction (Inactive Customers)
+SELECT Customer_ID, Last_Transaction_Days_Ago, Active_Days
+FROM wallet
+WHERE Last_Transaction_Days_Ago > 90
+ORDER BY Last_Transaction_Days_Ago DESC;
+
+#4. Customer Lifetime Value (LTV) Prediction
+ SELECT 
+    Customer_ID, 
+    Total_Spent / Active_Days AS LTV_Score
+FROM wallet
+ORDER BY LTV_Score DESC
+LIMIT 10;
